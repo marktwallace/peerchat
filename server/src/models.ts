@@ -1,6 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
+import WebSocket from 'ws';
 
 export interface RequestWithPublicKey extends Request {
+  publicKey?: string;
+}
+
+export interface WebSocketWithPublicKey extends WebSocket {
   publicKey?: string;
 }
 

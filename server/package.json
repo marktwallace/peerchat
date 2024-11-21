@@ -17,6 +17,7 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
+    "@types/morgan": "^1.9.9",
     "@types/node": "^22.9.1",
     "@types/supertest": "^6.0.2",
     "@types/ws": "^8.5.13",
@@ -29,6 +30,8 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.21.1",
+    "helmet": "^8.0.0",
+    "morgan": "^1.10.0",
     "tweetnacl": "^1.0.3",
     "ws": "^8.18.0"
   }
