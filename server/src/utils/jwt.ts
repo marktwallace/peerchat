@@ -1,4 +1,4 @@
-// utils/jwt.js
+// src/utils/jwt.js
 import nacl from 'tweetnacl';
 
 const PRIVATE_KEY_BASE64 = process.env.PEERCHAT_PRIVATE_KEY;
@@ -48,10 +48,17 @@ export function verifyJWT(jwt) {
   const message = encodedHeader + '.' + encodedPayload;
   const messageUint8 = new Uint8Array(Buffer.from(message));
   const signatureUint8 = new Uint8Array(base64urlDecode(encodedSignature));
+
+  // Check if the signature length is valid
+  if (signatureUint8.length !== 64) {
+    return null; // Invalid signature length
+  }
+
   const isValid = nacl.sign.detached.verify(messageUint8, signatureUint8, serverPublicKeyUint8);
   if (!isValid) {
     return null;
   }
+
   // Parse the payload and check expiration
   const payloadJSON = Buffer.from(base64urlDecode(encodedPayload)).toString('utf8');
   const payload = JSON.parse(payloadJSON);

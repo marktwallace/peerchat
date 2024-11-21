@@ -1,6 +1,7 @@
+// src/utils/sign.ts
 import nacl from 'tweetnacl';
 
-const PRIVATE_KEY_BASE64 = process.env.CATALK_PRIVATE_KEY;
+const PRIVATE_KEY_BASE64 = process.env.PEERCHAT_PRIVATE_KEY;
 const serverPrivateKeyUint8 = Uint8Array.from(Buffer.from(PRIVATE_KEY_BASE64, 'base64'));
 
 function signMessage(message) {

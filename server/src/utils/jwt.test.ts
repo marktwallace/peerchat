@@ -4,6 +4,11 @@ import nacl from 'tweetnacl';
 
 const PRIVATE_KEY_BASE64 = process.env.PEERCHAT_PRIVATE_KEY;
 const PUBLIC_KEY_BASE64 = process.env.PEERCHAT_PUBLIC_KEY;
+
+if (!PRIVATE_KEY_BASE64 || !PUBLIC_KEY_BASE64) {
+  throw new Error('Environment variables PEERCHAT_PRIVATE_KEY and PEERCHAT_PUBLIC_KEY must be set');
+}
+
 const serverPrivateKeyUint8 = Uint8Array.from(Buffer.from(PRIVATE_KEY_BASE64, 'base64'));
 const serverPublicKeyUint8 = Uint8Array.from(Buffer.from(PUBLIC_KEY_BASE64, 'base64'));
 
@@ -33,11 +38,15 @@ describe('JWT Utilities', () => {
   });
 
   it('should return null for an invalid JWT', () => {
-    const invalidJwt = 'invalid.jwt.token';
-    const result = verifyJWT(invalidJwt);
+    // Create a valid JWT and tamper with the signature to make it invalid
+    const jwt = createJWT(header, payload);
+    const parts = jwt.split('.');
+    const tamperedJwt = parts[0] + '.' + parts[1] + '.invalidsignature';
+  
+    const result = verifyJWT(tamperedJwt);
     expect(result).toBeNull();
   });
-
+  
   it('should return null for an expired JWT', () => {
     const expiredPayload = { ...payload, exp: Math.floor(Date.now() / 1000) - 10 };
     const jwt = createJWT(header, expiredPayload);
