@@ -1,6 +1,6 @@
 // utils/jwt.test.ts
 import { createJWT, verifyJWT, base64urlEncode, base64urlDecode } from './jwt';
-import nacl from 'tweetnacl';
+import { JwtPayload } from '../models';
 
 const PRIVATE_KEY_BASE64 = process.env.PEERCHAT_PRIVATE_KEY;
 const PUBLIC_KEY_BASE64 = process.env.PEERCHAT_PUBLIC_KEY;
@@ -9,11 +9,8 @@ if (!PRIVATE_KEY_BASE64 || !PUBLIC_KEY_BASE64) {
   throw new Error('Environment variables PEERCHAT_PRIVATE_KEY and PEERCHAT_PUBLIC_KEY must be set');
 }
 
-const serverPrivateKeyUint8 = Uint8Array.from(Buffer.from(PRIVATE_KEY_BASE64, 'base64'));
-const serverPublicKeyUint8 = Uint8Array.from(Buffer.from(PUBLIC_KEY_BASE64, 'base64'));
-
 const header = { alg: 'EdDSA', typ: 'JWT' };
-const payload = { sub: '1234567890', name: 'John Doe', exp: Math.floor(Date.now() / 1000) + 60 };
+const payload: JwtPayload = { sub: '1234567890', exp: Math.floor(Date.now() / 1000) + 60, iat: Math.floor(Date.now() / 1000) };
 
 describe('JWT Utilities', () => {
   it('should base64url encode and decode correctly', () => {
@@ -31,13 +28,13 @@ describe('JWT Utilities', () => {
 
   it('should verify a valid JWT', () => {
     const jwt = createJWT(header, payload);
-    const verifiedPayload = verifyJWT(jwt) as typeof payload;
+    const verifiedPayload = verifyJWT(jwt);
     expect(verifiedPayload).not.toBeNull();
+
     if (verifiedPayload) {
       expect(verifiedPayload.sub).toBe(payload.sub);
-      expect(verifiedPayload.name).toBe(payload.name);
-    } else {
-      fail('verifiedPayload is null');
+      expect(verifiedPayload.exp).toBe(payload.exp);
+      expect(verifiedPayload.iat).toBe(payload.iat);
     }
   });
 
@@ -50,9 +47,9 @@ describe('JWT Utilities', () => {
     const result = verifyJWT(tamperedJwt);
     expect(result).toBeNull();
   });
-  
+
   it('should return null for an expired JWT', () => {
-    const expiredPayload = { ...payload, exp: Math.floor(Date.now() / 1000) - 10 };
+    const expiredPayload: JwtPayload = { ...payload, exp: Math.floor(Date.now() / 1000) - 10 };
     const jwt = createJWT(header, expiredPayload);
     const result = verifyJWT(jwt);
     expect(result).toBeNull();

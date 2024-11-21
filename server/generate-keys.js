@@ -36,7 +36,7 @@ if (fs.existsSync(privateKeyPath) || fs.existsSync(publicKeyPath)) {
     { mode: 0o644 }
   );
 
-  console.log("Private key seed and public key have been generated and saved to ~/.catalk.");
+  console.log("Private key seed and public key have been generated and saved to ~/.peerchat");
 }
 
 // Check if the owner token file already exists
@@ -50,5 +50,5 @@ if (fs.existsSync(ownerTokenPath)) {
   // Save the owner token to a file
   fs.writeFileSync(ownerTokenPath, ownerTokenBase64, { mode: 0o600 });
 
-  console.log("Owner token has been generated and saved to ~/.catalk.");
+  console.log("Owner token has been generated and saved to ~/.peerchat");
 }

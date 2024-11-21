@@ -1,8 +1,9 @@
-// src/utils/jwt.js
+// src/utils/jwt.ts
 import nacl from 'tweetnacl';
+import { JwtPayload } from '../models';
 
 const PRIVATE_KEY_BASE64 = process.env.PEERCHAT_PRIVATE_KEY;
-const PUBLIC_KEY_BASE64 = process.env.PEERCHAT_PUBLIC_KEY
+const PUBLIC_KEY_BASE64 = process.env.PEERCHAT_PUBLIC_KEY;
 if (!PRIVATE_KEY_BASE64 || !PUBLIC_KEY_BASE64) {
   throw new Error('Environment variables PEERCHAT_PRIVATE_KEY and PEERCHAT_PUBLIC_KEY must be set');
 }
@@ -45,7 +46,7 @@ export function createJWT(header: object, payload: object): string {
 }
 
 // Function to verify a JWT
-export function verifyJWT(jwt: string): object | null {
+export function verifyJWT(jwt: string): JwtPayload | null {
   const parts = jwt.split('.');
   if (parts.length !== 3) {
     return null;
@@ -53,7 +54,7 @@ export function verifyJWT(jwt: string): object | null {
   const [encodedHeader, encodedPayload, encodedSignature] = parts;
   const message = encodedHeader + '.' + encodedPayload;
   const messageUint8 = new Uint8Array(Buffer.from(message));
-  const signatureUint8 = new Uint8Array(base64urlDecode(encodedSignature));
+  const signatureUint8 = base64urlDecode(encodedSignature);
 
   // Check if the signature length is valid
   if (signatureUint8.length !== 64) {
@@ -67,7 +68,7 @@ export function verifyJWT(jwt: string): object | null {
 
   // Parse the payload and check expiration
   const payloadJSON = Buffer.from(base64urlDecode(encodedPayload)).toString('utf8');
-  const payload = JSON.parse(payloadJSON);
+  const payload = JSON.parse(payloadJSON) as JwtPayload;
 
   if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
     return null; // Token has expired
