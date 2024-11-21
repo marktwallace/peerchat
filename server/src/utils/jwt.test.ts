@@ -31,10 +31,14 @@ describe('JWT Utilities', () => {
 
   it('should verify a valid JWT', () => {
     const jwt = createJWT(header, payload);
-    const verifiedPayload = verifyJWT(jwt);
+    const verifiedPayload = verifyJWT(jwt) as typeof payload;
     expect(verifiedPayload).not.toBeNull();
-    expect(verifiedPayload.sub).toBe(payload.sub);
-    expect(verifiedPayload.name).toBe(payload.name);
+    if (verifiedPayload) {
+      expect(verifiedPayload.sub).toBe(payload.sub);
+      expect(verifiedPayload.name).toBe(payload.name);
+    } else {
+      fail('verifiedPayload is null');
+    }
   });
 
   it('should return null for an invalid JWT', () => {
