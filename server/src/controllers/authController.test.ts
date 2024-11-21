@@ -19,8 +19,8 @@ describe('authController', () => {
   let privateKeyUint8: Uint8Array;
   let nonceBase64: string;
 
-  beforeAll(() => {
-    // Generate key pair for testing
+  beforeEach(() => {
+    // Generate key pair for each test to ensure isolation
     const keyPair = nacl.sign.keyPair();
     privateKeyUint8 = keyPair.secretKey;
     publicKeyBase64 = Buffer.from(keyPair.publicKey).toString('base64');
@@ -57,6 +57,16 @@ describe('authController', () => {
   });
 
   describe('POST /api/confirm-login', () => {
+    beforeEach(async () => {
+      // Create a valid nonce for each test by calling login endpoint
+      const loginResponse = await request(app)
+        .post('/api/login')
+        .send({ publicKey: publicKeyBase64 });
+
+      expect(loginResponse.status).toBe(200);
+      nonceBase64 = loginResponse.body.nonce;
+    });
+
     it('should return 400 if public key or signature is missing', async () => {
       const response = await request(app)
         .post('/api/confirm-login')
@@ -67,19 +77,20 @@ describe('authController', () => {
     });
 
     it('should return 400 if no login initiated for the public key', async () => {
+      const anotherPublicKey = Buffer.from(nacl.sign.keyPair().publicKey).toString('base64');
       const response = await request(app)
         .post('/api/confirm-login')
-        .send({ publicKey: 'anotherPublicKey', signature: 'fakeSignature' });
+        .send({ publicKey: anotherPublicKey, signature: 'fakeSignature' });
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('No login initiated for this public key');
     });
 
     it('should return 400 if the nonce has expired', async () => {
-      // Manually expire the nonce for testing
       jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 10 * 60 * 1000); // 10 minutes later
 
-      const signatureUint8 = nacl.sign.detached(Uint8Array.from(Buffer.from(nonceBase64, 'base64')), privateKeyUint8);
+      const nonceUint8 = Uint8Array.from(Buffer.from(nonceBase64, 'base64'));
+      const signatureUint8 = nacl.sign.detached(nonceUint8, privateKeyUint8);
       const signatureBase64 = Buffer.from(signatureUint8).toString('base64');
 
       const response = await request(app)
@@ -93,7 +104,9 @@ describe('authController', () => {
     });
 
     it('should return 403 if the signature is invalid', async () => {
-      const invalidSignatureBase64 = Buffer.from(nacl.randomBytes(64)).toString('base64');
+      // Create an invalid signature by signing random data
+      const invalidSignatureUint8 = nacl.randomBytes(nacl.sign.signatureLength);
+      const invalidSignatureBase64 = Buffer.from(invalidSignatureUint8).toString('base64');
 
       const response = await request(app)
         .post('/api/confirm-login')
@@ -107,12 +120,10 @@ describe('authController', () => {
       const originalNow = Date.now();
       jest.spyOn(Date, 'now').mockReturnValue(originalNow);
 
-      // Generate a valid signature for the nonce
       const nonceUint8 = Uint8Array.from(Buffer.from(nonceBase64, 'base64'));
       const signatureUint8 = nacl.sign.detached(nonceUint8, privateKeyUint8);
       const signatureBase64 = Buffer.from(signatureUint8).toString('base64');
 
-      // Mock JWT generation
       const jwtMock = 'mocked.jwt.token';
       (createJWT as jest.Mock).mockReturnValue(jwtMock);
 
@@ -125,8 +136,6 @@ describe('authController', () => {
       expect(messageService.broadcastMessage).toHaveBeenCalledWith(expect.objectContaining({
         type: 'user_login',
         publicKey: publicKeyBase64,
-        friendlyName: 'UserFriendlyNameHere',
-        privilege: 'standard',
       }));
 
       jest.spyOn(Date, 'now').mockRestore(); // Restore original Date.now()

@@ -76,7 +76,7 @@ export function confirmLogin(req: Request, res: Response): void {
 
   if (!publicKey || !signature) {
     res.status(400).json({ error: 'Public key and signature are required' });
-    return
+    return;
   }
 
   try {
@@ -85,7 +85,7 @@ export function confirmLogin(req: Request, res: Response): void {
 
     if (!nonceData) {
       res.status(400).json({ error: 'No login initiated for this public key' });
-      return
+      return;
     }
 
     const { nonceBase64, expiresAt } = nonceData;
