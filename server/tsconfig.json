@@ -5,9 +5,15 @@
     "target": "ESNext",
     "outDir": "dist",
     "esModuleInterop": true,
-    "types": ["node"]
+    "types": [
+      "node",
+      "jest"
+    ]
   },
-  "exclude": ["dist"],
+  "exclude": [
+    "dist",
+    "**/*.test.ts"
+  ],
   "include": [
     "src/**/*",
     "*.ts"
