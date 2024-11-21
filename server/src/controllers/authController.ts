@@ -1,7 +1,7 @@
 // src/controllers/authController.ts
 import nacl from 'tweetnacl';
-import { createJWT } from '../utils/jwt.js';
-import messageService from '../services/messageService.js';
+import { createJWT } from '../utils/jwt';
+import messageService from '../services/messageService';
 import { Request, Response } from 'express';
 import { JwtPayload } from '../models';
 

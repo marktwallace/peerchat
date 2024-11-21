@@ -57,50 +57,50 @@ curl -X POST http://localhost:6765/api/accept-invite \
   -H "Content-Type: application/json" \
   -d '{"inviteToken": "your_invite_token_here", "publicKey": "your_public_key_here"}'
 */
-//export async function acceptInvite(req: Request, res: Response) {
+
 export async function acceptInvite(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const { inviteToken } = req.body;
-
-  if (!inviteToken) {
-    res.status(400).json({ error: 'Invite token is required' });
-    return;
-  }
-
-  const [inviteDataBase64, providedSignatureBase64] = inviteToken.split('.');
-  if (!inviteDataBase64 || !providedSignatureBase64) {
-    res.status(400).json({ error: 'Invalid invite token format' });
-    return;
-  }
-
-  try {
-    // Attempt to decode Base64 inputs
-    const inviteData = Uint8Array.from(Buffer.from(inviteDataBase64, 'base64'));
-    const providedSignature = Uint8Array.from(Buffer.from(providedSignatureBase64, 'base64'));
-
-    // Verify the signature using the public key
-    const isVerified = nacl.sign.detached.verify(inviteData, providedSignature, serverPublicKeyUint8);
-
-    if (!isVerified) {
-      res.status(403).json({ error: 'Invalid invite token signature' });
+    const { inviteToken } = req.body;
+  
+    if (!inviteToken) {
+      res.status(400).json({ error: 'Invite token is required' });
       return;
     }
-
-    // Proceed with accepting the invite
-    res.status(200).json({ message: 'Invite accepted successfully' });
-  } catch (error) {
-    if (error instanceof TypeError && error.message === 'invalid encoding') {
-      // Handle invalid Base64 encoding
-      console.warn('Invalid Base64 encoding in invite token');
+  
+    const [inviteDataBase64, providedSignatureBase64] = inviteToken.split('.');
+    if (!inviteDataBase64 || !providedSignatureBase64) {
       res.status(400).json({ error: 'Invalid invite token format' });
       return;
-    } else {
-      // Log minimal error information for unexpected errors
-      if (error instanceof Error) {
+    }
+  
+    try {
+      // Attempt to decode Base64 inputs
+      const inviteData = Uint8Array.from(Buffer.from(inviteDataBase64, 'base64'));
+      const providedSignature = Uint8Array.from(Buffer.from(providedSignatureBase64, 'base64'));
+  
+      // Verify the signature using the public key
+      if (providedSignature.length !== 64) {
+        throw new Error('Invalid signature length'); // Explicit check for bad signature length
+      }
+  
+      const isVerified = nacl.sign.detached.verify(inviteData, providedSignature, serverPublicKeyUint8);
+  
+      if (!isVerified) {
+        res.status(403).json({ error: 'Invalid invite token signature' });
+        return;
+      }
+  
+      // Proceed with accepting the invite
+      res.status(200).json({ message: 'Invite accepted successfully' });
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Invalid signature length') {
+        res.status(400).json({ error: 'Invalid invite token format' });
+      } else if (error instanceof Error) {
         console.error('Unexpected error in acceptInvite:', error.message);
+        res.status(403).json({ error: 'Invalid invite token signature' }); // Return 403 for failed verification
       } else {
         console.error('Unexpected error in acceptInvite:', error);
+        next(error);
       }
-      res.status(500).json({ error: 'Internal server error' });
     }
   }
-};
+  

@@ -53,53 +53,55 @@ describe('inviteController', () => {
 
   describe('POST /api/accept-invite', () => {
     let inviteToken: string;
-
+  
     beforeAll(async () => {
       // Create a valid invite token for testing the accept invite endpoint
       const response = await request(app)
         .post('/api/create-invite')
         .set('Authorization', OWNER_TOKEN!)
         .send({ privileges: 'read-write' });
-
+  
       inviteToken = response.body.invite;
     });
-
+  
     it('should return 400 if invite token is missing', async () => {
       const response = await request(app)
         .post('/api/accept-invite')
         .send({});
-
+  
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('Invite token is required');
     });
-
+  
     it('should return 400 if invite token format is invalid', async () => {
       const response = await request(app)
         .post('/api/accept-invite')
         .send({ inviteToken: 'invalidInviteToken' });
-
+  
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('Invalid invite token format');
     });
-
+  
     it('should return 403 if the invite token signature is invalid', async () => {
-      // Tamper with the invite token to make it invalid
-      const [inviteDataBase64] = inviteToken.split('.');
-      const tamperedInviteToken = `${inviteDataBase64}.invalidSignature`;
-
+      // Tamper with the invite token to make it invalid, while keeping the length valid (64 bytes)
+      const [inviteDataBase64, originalSignatureBase64] = inviteToken.split('.');
+      const tamperedSignatureBuffer = Uint8Array.from(Buffer.from(originalSignatureBase64, 'base64')).map(byte => byte ^ 0xff); // XOR to change original signature
+      const tamperedSignatureBase64 = Buffer.from(tamperedSignatureBuffer).toString('base64');
+      const tamperedInviteToken = `${inviteDataBase64}.${tamperedSignatureBase64}`;
+  
       const response = await request(app)
         .post('/api/accept-invite')
         .send({ inviteToken: tamperedInviteToken });
-
+  
       expect(response.status).toBe(403);
       expect(response.body.error).toBe('Invalid invite token signature');
     });
-
+  
     it('should return 200 if the invite token is valid', async () => {
       const response = await request(app)
         .post('/api/accept-invite')
         .send({ inviteToken });
-
+  
       expect(response.status).toBe(200);
       expect(response.body.message).toBe('Invite accepted successfully');
     });
