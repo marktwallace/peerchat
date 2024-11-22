@@ -1,7 +1,14 @@
-// client.js
-import fetch from "node-fetch";
+// client.ts (port of client.js)
 import nacl from "tweetnacl";
 import WebSocket from "ws";
+import {
+  AcceptInviteResponse,
+  LoginResponse,
+  ConfirmLoginResponse,
+  ProtectedRouteResponse,
+  ReplyResponse,
+} from "./types"; // Assuming types are in a file named 'types.ts'
+const fetch = require("node-fetch");
 
 const SERVER_URL = "http://localhost:6765";
 
@@ -37,10 +44,10 @@ const SERVER_URL = "http://localhost:6765";
       }
     );
 
-    const acceptInviteData = await acceptInviteResponse.json();
+    const acceptInviteData = await acceptInviteResponse.json() as AcceptInviteResponse;
 
     if (!acceptInviteResponse.ok) {
-      console.error("Accept invite error:", acceptInviteData.error);
+      console.error("Accept invite error:", acceptInviteData);
       return;
     }
 
@@ -54,10 +61,10 @@ const SERVER_URL = "http://localhost:6765";
       body: JSON.stringify({ publicKey: publicKeyBase64 }),
     });
 
-    const loginData = await loginResponse.json();
+    const loginData = await loginResponse.json() as LoginResponse;
 
     if (!loginResponse.ok) {
-      console.error("Login error:", loginData.error);
+      console.error("Login error:", loginData);
       return;
     }
 
@@ -82,10 +89,10 @@ const SERVER_URL = "http://localhost:6765";
       }),
     });
 
-    const confirmData = await confirmResponse.json();
+    const confirmData = await confirmResponse.json() as ConfirmLoginResponse;
 
     if (!confirmResponse.ok) {
-      console.error("Confirm login error:", confirmData.error);
+      console.error("Confirm login error:", confirmData);
       return;
     }
 
@@ -113,13 +120,10 @@ const SERVER_URL = "http://localhost:6765";
     ws.onclose = (event) => {
       if (event.code === 4001) {
         console.error("Connection closed: No authorization header provided");
-        // Handle re-authentication or inform the user
       } else if (event.code === 4002) {
         console.error("Connection closed: Invalid or expired session token");
-        // Ask the user to log in again
       } else {
         console.error("Connection closed: ", event.code, event.reason);
-        // Handle other closures appropriately
       }
     };
 
@@ -133,16 +137,16 @@ const SERVER_URL = "http://localhost:6765";
       },
     });
 
-    const protectedData = await protectedResponse.json();
+    const protectedData = await protectedResponse.json() as ProtectedRouteResponse;
 
     if (!protectedResponse.ok) {
-      console.error("Protected route error:", protectedData.error);
+      console.error("Protected route error:", protectedData);
       return;
     }
 
     console.log("Protected Data:", protectedData);
 
-    // step 6: Send a message
+    // Step 6: Send a message
     console.log("Sending a message...");
     const message = {
       text: "Hello, WebSocket!",
@@ -155,7 +159,14 @@ const SERVER_URL = "http://localhost:6765";
       },
       body: JSON.stringify(message),
     });
-    const replyData = await replyResponse.json();
+
+    const replyData = await replyResponse.json() as ReplyResponse;
+
+    if (!replyResponse.ok) {
+      console.error("Reply error:", replyData);
+      return;
+    }
+
     console.log("Message sent:", replyData);
   } catch (error) {
     console.error("Error:", error);
