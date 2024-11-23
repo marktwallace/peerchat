@@ -129,17 +129,6 @@ export function confirmLogin(req: Request, res: Response): void {
     // Delete the nonce as it's no longer needed
     nonces.delete(publicKey);
 
-    // Announce the user login over the WebSocket using the MessageService
-    const announcement = {
-      type: 'user_login',
-      publicKey,
-      friendlyName: 'UserFriendlyNameHere', // Replace with actual user's friendly name
-      privilege: 'standard', // Replace with actual privilege level
-      timestamp: Date.now(),
-    };
-
-    messageService.broadcastMessage(announcement);
-
     // Return the JWT to the client
     res.status(200).json({ sessionToken: jwt });
   } catch (error) {

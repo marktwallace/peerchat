@@ -1,20 +1,30 @@
 // src/services/messageService.ts
+import { WebSocketWithMetadata } from '../models';
 import { signMessage } from '../utils/sign';
 import WebSocket from 'ws';
+import { ClientMetadata } from '../models';
 
 class MessageService {
-  private clients: Set<WebSocket>;
+  private clients: Set<WebSocketWithMetadata>;
 
   constructor() {
     this.clients = new Set();
   }
 
-  addClient(client: WebSocket): void {
+  addClient(client: WebSocketWithMetadata): void {
     this.clients.add(client);
+    this.sendClientList(client);
+    this.broadcastMessage({ type: 'connect', metadata: client.clientMetadata });
   }
 
-  removeClient(client: WebSocket): void {
+  removeClient(client: WebSocketWithMetadata): void {
     this.clients.delete(client);
+    this.broadcastMessage({ type: 'disconnect', metadata: client.clientMetadata });
+  }
+
+  sendClientList(client: WebSocketWithMetadata): void {
+    const clientList = Array.from(this.clients).map((client) => client.clientMetadata);
+    client.send(JSON.stringify({ type: 'clientList', clientList }));
   }
 
   broadcastMessage(message: any): void {

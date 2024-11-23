@@ -5,8 +5,18 @@ export interface RequestWithPublicKey extends Request {
   publicKey?: string;
 }
 
-export interface WebSocketWithPublicKey extends WebSocket {
-  publicKey?: string;
+export interface WebSocketWithMetadata extends WebSocket {
+  clientMetadata?: ClientMetadata;
+}
+
+export interface ClientMetadataHeader {
+  name: string;
+}
+
+export interface ClientMetadata extends ClientMetadataHeader {
+  publicKey: string;
+  privilege: string;
+  timestamp: number;
 }
 
 export interface JwtPayload {
