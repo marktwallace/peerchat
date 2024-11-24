@@ -23,7 +23,8 @@ export async function startClient(inviteToken: string) {
   console.log("Login confirmed. Session Token:", confirmedSessionToken);
 
   // Step 4: Connect to WebSocket
-  const ws = await connectWebSocket(confirmedSessionToken);
+  const clientMetadata = { publicKey: publicKeyBase64, privilege: "user", timestamp: Date.now() };
+  const ws = await connectWebSocket(confirmedSessionToken,{"name":"Abby"});
 
   // Step 5: Access Protected Route
   const protectedData = await accessProtectedRoute(confirmedSessionToken);

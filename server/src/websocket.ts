@@ -1,9 +1,11 @@
+// src/websockets.ts
 import { WebSocketServer, WebSocket } from "ws";
 import { verifyJWT } from "./utils/jwt";
 import messageService from "./services/messageService";
 import { WebSocketWithMetadata, ClientMetadataHeader, ClientMetadata } from "./models";
 
 import { Server } from "http";
+import { parse } from "url";
 
 export function setupWebSocket(server: Server) {
   const wss = new WebSocketServer({ server });
@@ -43,16 +45,13 @@ export function setupWebSocket(server: Server) {
       return;
     }
 
-    const clientMetadataHeader = req.headers["x-client-metadata"];
-    if (clientMetadataHeader) {
+    // Extract client metadata from query parameters
+    const query = parse(req.url || "", true).query;
+    const clientMetadataString = query.clientMetadata as string;
+    if (clientMetadataString) {
       try {
-        const clientMetadataString = Array.isArray(clientMetadataHeader)
-          ? clientMetadataHeader[0]
-          : clientMetadataHeader;
-        const headerData = JSON.parse(
-          clientMetadataString
-        ) as ClientMetadataHeader;
-        const clientMetadata : ClientMetadata = {
+        const headerData = JSON.parse(decodeURIComponent(clientMetadataString)) as ClientMetadataHeader;
+        const clientMetadata: ClientMetadata = {
           ...headerData,
           publicKey,
           privilege: "user",
@@ -61,13 +60,13 @@ export function setupWebSocket(server: Server) {
         console.log("Client Metadata:", clientMetadata);
         ws.clientMetadata = clientMetadata;
       } catch (e) {
-        console.error("Invalid JSON in X-Client-Metadata header:", e);
-        ws.close(4004,"Invalid x-client-metadata header format");
+        console.error("Invalid JSON in clientMetadata query parameter:", e);
+        ws.close(4004, "Invalid clientMetadata query parameter format");
         return;
       }
     } else {
-      console.error("Missing X-Client-Metadata header");
-      ws.close(4005, "Missing x-client-metadata header");
+      console.error("Missing clientMetadata query parameter");
+      ws.close(4005, "Missing clientMetadata query parameter");
       return;
     }
 
@@ -81,7 +80,7 @@ export function setupWebSocket(server: Server) {
 
     // This is here for testing only
     // messages with side effects
-    // will be sent throught the REST API
+    // will be sent through the REST API
     ws.on("message", (data) => {
       const message = JSON.parse(data.toString());
       console.log("Received message:", message);

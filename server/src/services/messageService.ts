@@ -12,6 +12,7 @@ class MessageService {
   }
 
   addClient(client: WebSocketWithMetadata): void {
+    console.log('Adding client:', client.clientMetadata);
     this.clients.add(client);
     this.sendClientList(client);
     this.broadcastMessage({ type: 'connect', metadata: client.clientMetadata });
@@ -24,6 +25,7 @@ class MessageService {
 
   sendClientList(client: WebSocketWithMetadata): void {
     const clientList = Array.from(this.clients).map((client) => client.clientMetadata);
+    console.log('Sending client list to client:', clientList);
     client.send(JSON.stringify({ type: 'clientList', clientList }));
   }
 

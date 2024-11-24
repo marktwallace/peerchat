@@ -1,7 +1,10 @@
+// src/services/wsService.ts
 import WebSocket from "ws";
+import { ClientMetadataHeader } from "../types";
 
-export async function connectWebSocket(sessionToken: string): Promise<WebSocket> {
-  const ws = new WebSocket(`ws://localhost:6765/ws`, {
+export async function connectWebSocket(sessionToken: string, clientMetadataHeader: ClientMetadataHeader): Promise<WebSocket> {
+  const clientMetadataQuery = encodeURIComponent(JSON.stringify(clientMetadataHeader));
+  const ws = new WebSocket(`ws://localhost:6765/ws?clientMetadata=${clientMetadataQuery}`, {
     headers: {
       Authorization: `Bearer ${sessionToken}`,
     },

@@ -19,3 +19,7 @@ export interface ProtectedRouteResponse {
 export interface ReplyResponse {
   messageId: string;
 }
+
+export interface ClientMetadataHeader {
+  name: string;
+}
