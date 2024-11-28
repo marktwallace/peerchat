@@ -11,26 +11,32 @@ export function setupWebSocket(server: Server) {
   const wss = new WebSocketServer({ server });
 
   wss.on("connection", (ws: WebSocketWithMetadata, req) => {
+    console.log("New WebSocket connection", req.url);
     // Extract the authorization header from the request
     const authHeader = req.headers["authorization"];
     if (!authHeader) {
       ws.close(4001, "No authorization header provided");
+      console.log("No authorization header provided");
       return;
     }
 
+    console.log("Authorization header:", authHeader)
     const token = authHeader.split(" ")[1]; // expecting 'Bearer sessionToken'
 
     if (!token) {
       ws.close(4002, "Invalid authorization header format");
+      console.log("Invalid authorization header format");
       return;
     }
 
     let publicKey: string = "";
     try {
       // Verify the JWT
+      console.log("Verifying JWT", token);
       const payload = verifyJWT(token);
       if (!payload) {
         ws.close(4003, "Invalid or expired session token");
+        console.log("Invalid or expired session token");
         return;
       }
       // Attach the publicKey to the WebSocket object for use in message handlers

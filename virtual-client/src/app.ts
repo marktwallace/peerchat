@@ -1,5 +1,11 @@
 import { generateKeyPair, signNonce } from "./utils/keyUtils";
-import { acceptInvite, login, confirmLogin, accessProtectedRoute, sendMessage } from "./services/authService";
+import {
+  acceptInvite,
+  login,
+  confirmLogin,
+  accessProtectedRoute,
+  sendMessage,
+} from "./services/authService";
 import WsService from "./services/wsService";
 import PeerService from "./services/peerService";
 
@@ -20,18 +26,24 @@ export async function startClient(inviteToken: string) {
 
   // Step 3: Confirm Login
   const signatureBase64 = signNonce(nonce, privateKeyUint8);
-  const confirmedSessionToken = await confirmLogin(publicKeyBase64, signatureBase64);
+  const confirmedSessionToken = await confirmLogin(
+    publicKeyBase64,
+    signatureBase64
+  );
   console.log("Login confirmed. Session Token:", confirmedSessionToken);
 
   // Step 4: Connect to WebSocket
-  const clientMetadataHeader = { name: "Mark", privilege: "user", timestamp: Date.now() };
+  const clientMetadataHeader = {
+    name: "Mark",
+    privilege: "user",
+    timestamp: Date.now(),
+  };
   const wsService = WsService.getInstance();
-  await wsService.connectWebSocket(sessionToken, clientMetadataHeader, publicKeyBase64);
-
-  // Access PeerService instance
-  const peerService = PeerService.getInstance();
-  const randomPeer = peerService.getRandomPeer();
-  console.log("Random peer:", randomPeer);
+  await wsService.connectWebSocket(
+    confirmedSessionToken,
+    clientMetadataHeader,
+    publicKeyBase64
+  );
 
   // Step 5: Access Protected Route
   const protectedData = await accessProtectedRoute(confirmedSessionToken);
@@ -47,10 +59,9 @@ export async function startClient(inviteToken: string) {
   await new Promise((resolve) => setTimeout(resolve, 1000));
   // Attempt to find a random peer once every second and log the result
   setInterval(() => {
+    // Access PeerService instance
+    const peerService = PeerService.getInstance();
     const randomPeer = peerService.getRandomPeer();
     console.log("Random peer:", randomPeer);
   }, 1000);
-
-
-
 }

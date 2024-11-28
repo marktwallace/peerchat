@@ -11,6 +11,7 @@ export function authMiddleware(req: RequestWithPublicKey, res: Response, next: N
     return;
   }
 
+  console.log("REST Authorization header:", authHeader)
   const token = authHeader.split(' ')[1]; // expecting 'Bearer sessionToken'
 
   if (!token) {

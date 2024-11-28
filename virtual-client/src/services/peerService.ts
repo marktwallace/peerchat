@@ -32,6 +32,7 @@ class PeerService {
   }
 
   private initializeMessageHandlers(): void {
+    console.log("Initializing PeerService message handlers");
     this.ws.on("message", (data: string) => {
       try {
         const message = JSON.parse(data);
