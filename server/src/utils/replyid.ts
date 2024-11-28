@@ -1,6 +1,5 @@
 // src/utils/replyid.ts
 export function generateId(channelId: number, counter: number): string {
-  // Ensure channelId and counter are within 12-bit limits
   if (channelId < 0 || channelId > 0xFFF) {
       throw new Error("channelId must be between 0 and 4095");
   }
@@ -12,8 +11,8 @@ export function generateId(channelId: number, counter: number): string {
   const currentDate = Date.now();
   const millisecondsSinceOrigin = BigInt(currentDate - originDate);
 
-  const channelIdBigInt = BigInt(channelId & 0xFFF); // Mask to 12 bits
-  const counterBigInt = BigInt(counter & 0xFFF);     // Mask to 12 bits
+  const channelIdBigInt = BigInt(channelId & 0xFFF);
+  const counterBigInt = BigInt(counter & 0xFFF);
 
   // Shift and combine the values into a single BigInt
   const totalId = (millisecondsSinceOrigin << 24n) | (channelIdBigInt << 12n) | counterBigInt;

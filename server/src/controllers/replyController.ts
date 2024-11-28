@@ -28,3 +28,27 @@ export function postReply(req: RequestWithPublicKey, res: Response): void {
   messageService.broadcastMessage(message);
   res.status(200).json({ status: 'OK', messageId: id });
 }
+/*
+export function directReply(req: RequestWithPublicKey, res: Response): void {
+  console.log('Received body:', req.body);
+  const { text, recipientPublicKey } = req.body;
+
+  if (!text || !recipientPublicKey) {
+    res.status(400).json({ error: 'Message text and recipient public key are required' });
+    return;
+  }
+
+  counter = (counter + 1) & 0xFF;
+  const id = generateId(0 ,counter); // TODO: need an id for DM's
+
+  const message: Reply = {
+    id,
+    pk: req.publicKey!,
+    text,
+  };
+
+  console.log('Generated message:', message);
+  messageService.directMessage(message, recipientPublicKey);
+  res.status(200).json({ status: 'OK', messageId: id });
+}
+*/

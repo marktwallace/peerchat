@@ -23,3 +23,19 @@ export interface ReplyResponse {
 export interface ClientMetadataHeader {
   name: string;
 }
+
+export interface SignedMessage {
+  message: any;
+  signature: string;
+}
+
+export interface ClientMetadataHeader {
+  name: string;
+}
+
+export interface ClientMetadata extends ClientMetadataHeader {
+  publicKey: string;
+  privilege: string;
+  timestamp: number;
+}
+

@@ -87,6 +87,19 @@ export function setupWebSocket(server: Server) {
 
       // Dispatch message based on type
       switch (message.type) {
+        // case common handling for WebRTC signalling messages
+        case "sdp-offer":
+        case "sdp-answer":
+        case "ice-candidate":
+          // WebRTC signalling message handling
+          if (!message.to) {
+            console.error("Missing 'to' field in message");
+            ws.send(JSON.stringify({ error: "Missing 'to' field in message" }));
+            return;
+          }
+          const recipientPublicKey = message.to;
+          messageService.signallingMessage(message, recipientPublicKey);
+          break;
         case "example":
           handleExampleMessage(message.payload, ws);
           break;

@@ -41,6 +41,17 @@ class MessageService {
       }
     });
   }
+
+  signallingMessage(message: any, recipientPublicKey: string): void {
+    console.log('Signalling message:', message);
+    // Find the recipient client and send the signed message
+    this.clients.forEach((client) => {
+      if (client.clientMetadata && client.clientMetadata.publicKey === recipientPublicKey && client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(message));
+        console.log('Sent signalling message to client');
+      }
+    });
+  }
 }
 
 const messageService = new MessageService();

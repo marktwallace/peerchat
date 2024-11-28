@@ -123,3 +123,10 @@ This peer-to-peer game chat architecture effectively balances efficiency, scalab
 
 By offloading heavy data transfers to peer-to-peer networks and maintaining a minimal server footprint, the system delivers a robust chat experience with reduced hosting costs and high scalability.
 
+## DM's (Direct Messages)
+
+DM's are complicated in this system because they are not public like channel messages, so if the recipient is not online, who holds onto the message? Honestly, I am not sure there is a "fair" way to do DM's that does not impose a burden on other users. DM's can be encrypted because the sender will have the public key of the recipient. Potentially they could be to anyone who is online, through the gossip protocol, and then end up eventually with the recipient, which is the only client that can read them. But suppose there is a big attachment? Is that also private? If so, then intermediaries will bear the cost of transmitting large data that they can not decrypt, which sounds bad for them, to be using their bandwidth and CPU not to their benifit.
+
+Potentially we could do something special with the virtual clients for DM's, when they hold the DM until the recipient eventually connects. In that case, we would have to avoid attachments for DM's, because the bandwidth cost would fall on the operator of the server, which is not free.
+
+Overall, the gossip protocol is great for reducing costs and does not compromise trust, but privacy is not "free". I think the best compromise will be to allow the virtual clients to hold on to the encrypted text portion of DM's for short periods, but transfer of private attachments can only happen with both real clients are online.

@@ -5,7 +5,7 @@ import {
   ConfirmLoginResponse,
   ProtectedRouteResponse,
   ReplyResponse,
-} from "../types";
+} from "../models";
 
 export async function acceptInvite(inviteToken: string, publicKey: string): Promise<AcceptInviteResponse> {
   return apiRequest<AcceptInviteResponse>("/api/accept-invite", {
