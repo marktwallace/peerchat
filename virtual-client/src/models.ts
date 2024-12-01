@@ -39,3 +39,10 @@ export interface ClientMetadata extends ClientMetadataHeader {
   timestamp: number;
 }
 
+export interface SignalMessage {
+  type: string;
+  from: string;
+  to: string;
+  payload: any;
+}
+

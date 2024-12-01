@@ -5,15 +5,8 @@ import {
   RTCIceCandidate,
   RTCDataChannel,
 } from "wrtc";
-import { SignedMessage } from "../models";
+import { SignalMessage } from "../models";
 import WebSocket from "ws";
-
-interface SignalingMessage {
-  type: string;
-  from: string;
-  to: string;
-  payload: any;
-}
 
 class WebRtcService {
   private ws: WebSocket;
@@ -32,9 +25,7 @@ class WebRtcService {
 
   private setupWebSocketHandlers() {
     this.ws.on("message", async (message: WebSocket.Data) => {
-      const msg = JSON.parse(message.toString()) as SignedMessage;
-      const signature = msg.signature;
-      const data : SignalingMessage = msg.message;
+      const data = JSON.parse(message.toString()) as SignalMessage;
       if (data.to !== this.clientId) return;
 
       switch (data.type) {
@@ -144,7 +135,7 @@ class WebRtcService {
   }
 
   private sendSignalingMessage(type: string, to: string, payload: any) {
-    const message: SignalingMessage = {
+    const message: SignalMessage = {
       type,
       from: this.clientId,
       to,
