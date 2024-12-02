@@ -30,14 +30,14 @@ class MessageService {
   }
 
   broadcastMessage(message: any): void {
-    const signedMessage = signMessage(message);
+    //const signedMessage = signMessage(message);
 
-    console.log('Broadcasting message:', signedMessage);
+    console.log('Broadcasting message:', message);
     // Broadcast the signed message to all connected clients
     this.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify(signedMessage));
-        console.log('Sent message to client');
+        client.send(JSON.stringify(message));
+        console.log('Sent message to client',client.clientMetadata?.publicKey);
       }
     });
   }
