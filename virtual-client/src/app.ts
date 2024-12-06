@@ -54,14 +54,33 @@ export async function startClient(inviteToken: string) {
   const reply = await sendMessage(confirmedSessionToken, message);
   console.log("Message sent:", reply);
 
-  // Step 7: Set up a WebRTC connection
-  // First wait for one second
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  // Attempt to find a random peer once every second and log the result
-  setInterval(() => {
-    // Access PeerService instance
-    const peerService = PeerService.getInstance();
-    const randomPeer = peerService.getRandomPeer();
+  // Step 7: Find a peer
+  const peerService = PeerService.getInstance();
+  let randomPeer;
+  while (true) {
+    // Wait for one second
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    
+    // Attempt to find a random peer
+    randomPeer = peerService.getRandomPeer();
     console.log("Random peer:", randomPeer);
-  }, 1000);
+
+    // Break the loop if a peer is found
+    if (randomPeer) {
+      console.log("Peer found, exiting loop.");
+      break;
+    }
+  }
+
+  // Step 8: Make a connection with the peer
+  wsService.wrtc?.initiateConnection(randomPeer.publicKey);
+
+  try {
+    wsService.wrtc?.sendData(randomPeer.publicKey, {
+      type: "chat-message",
+      text: "Hello from your peer!",
+    });
+  } catch (error) {
+    console.error("Failed to send message:", error);
+  }
 }

@@ -46,8 +46,6 @@ class PeerService {
           case "disconnect":
             this.handleClientDisconnect(message.metadata);
             break;
-          default:
-            console.warn("Unknown message type received:", message.type);
         }
       } catch (error) {
         console.error("Failed to parse message", error);

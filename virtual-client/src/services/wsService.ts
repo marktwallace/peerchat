@@ -10,6 +10,8 @@ class WsService {
 
   private constructor() {}
 
+  public wrtc: WebRtcService | undefined;
+
   public static getInstance(): WsService {
     if (!WsService.instance) {
       WsService.instance = new WsService();
@@ -46,7 +48,7 @@ class WsService {
           PeerService.initialize(this.ws!, clientId);
 
           // Create a new WebRtcService instance for this WebSocket connection
-          new WebRtcService(this.ws!, clientId);
+          this.wrtc = new WebRtcService(this.ws!, clientId);
 
           resolve(this.ws!);
         } catch (error) {

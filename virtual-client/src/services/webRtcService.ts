@@ -43,6 +43,7 @@ class WebRtcService {
   }
 
   private async handleOffer(from: string, offer: RTCSessionDescriptionInit) {
+    console.log(`Received offer from ${from}`);
     if (this.peerConnections.has(from)) {
       const pc = this.peerConnections.get(from);
       if (pc) {
@@ -89,6 +90,7 @@ class WebRtcService {
   }
 
   private async handleAnswer(from: string, answer: any) {
+    console.log(`Received answer from ${from}`);
     const pc = this.peerConnections.get(from);
     if (pc) {
       await pc.setRemoteDescription(answer);
@@ -98,6 +100,7 @@ class WebRtcService {
   }
 
   private async handleIceCandidate(from: string, candidate: any) {
+    console.log(`Received ICE candidate from ${from}`);
     const pc = this.peerConnections.get(from);
     if (pc) {
       await pc.addIceCandidate(candidate);
@@ -130,7 +133,12 @@ class WebRtcService {
     };
 
     dataChannel.onmessage = (event: any) => {
-      console.log(`Message from ${peerId}: ${event.data}`);
+      try {
+        const parsedData = JSON.parse(event.data);
+        console.log(`Message from ${peerId}:`, parsedData);
+      } catch (err) {
+        console.log(`Message from ${peerId}:`, event.data);
+      }
     };
   }
 
@@ -187,6 +195,24 @@ class WebRtcService {
   public isDataChannelOpen(peerId: string): boolean {
     const dataChannel = this.dataChannels.get(peerId);
     return dataChannel?.readyState === "open";
+  }
+
+  public sendData(peerId: string, data: any) {
+    const dataChannel = this.dataChannels.get(peerId);
+    if (!dataChannel) {
+      console.error(`No data channel found for peer ${peerId}`);
+      return;
+    }
+
+    if (dataChannel.readyState !== "open") {
+      console.error(`Data channel for peer ${peerId} is not open`);
+      return;
+    }
+
+    const messageToSend =
+      typeof data === "string" ? data : JSON.stringify(data);
+    dataChannel.send(messageToSend);
+    console.log(`Sent message to ${peerId}: ${messageToSend}`);
   }
 }
 
