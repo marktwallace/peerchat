@@ -1,10 +1,8 @@
 // components/InviteDialog.tsx
 import React, { useState, useEffect } from "react";
-import nacl from "tweetnacl";
-import { Buffer } from "buffer";
-import { acceptInvite } from "../services/api";
-import { savePublicKey, getPublicKey } from "../services/localStorage";
 import styled from "styled-components";
+import { acceptInvite } from "../services/api";
+import { getKeyPair } from "../services/localStorage";
 
 interface InviteDialogProps {
   onInviteAccepted: (response: any) => void;
@@ -15,23 +13,21 @@ export default function InviteDialog({ onInviteAccepted }: InviteDialogProps) {
   const [publicKeyBase64, setPublicKeyBase64] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadPublicKey = async () => {
-      const savedKey = await getPublicKey();
-      if (savedKey) setPublicKeyBase64(savedKey);
+    const loadKeyPair = async () => {
+      const keyPair = await getKeyPair();
+      if (keyPair) setPublicKeyBase64(keyPair.publicKey);
     };
-    loadPublicKey();
+    loadKeyPair();
   }, []);
 
-  const handleGenerateKey = () => {
-    const keyPair = nacl.sign.keyPair();
-    const base64Key = Buffer.from(keyPair.publicKey).toString("base64");
-    setPublicKeyBase64(base64Key);
-    savePublicKey(base64Key); // Persist public key
-  };
-
   const handleAcceptInvite = async () => {
-    if (!inviteToken || !publicKeyBase64) {
-      alert("Please provide an invite token and generate a key pair.");
+    if (!inviteToken) {
+      alert("Please enter an invite token.");
+      return;
+    }
+
+    if (!publicKeyBase64) {
+      alert("A key pair is required to accept an invite. Please create one first.");
       return;
     }
 
@@ -45,52 +41,101 @@ export default function InviteDialog({ onInviteAccepted }: InviteDialogProps) {
   };
 
   return (
-    <Modal>
-      <h2>Accept Invite</h2>
-      <Input
-        type="text"
-        placeholder="Enter invite token"
-        value={inviteToken}
-        onChange={(e) => setInviteToken(e.target.value)}
-      />
-      <Button onClick={handleGenerateKey}>
-        {publicKeyBase64 ? "Regenerate Key Pair" : "Generate Key Pair"}
-      </Button>
-      {publicKeyBase64 && (
-        <KeyDisplay>
-          <p>Your Public Key (Base64):</p>
-          <code>{publicKeyBase64}</code>
-        </KeyDisplay>
-      )}
-      <Button onClick={handleAcceptInvite}>Accept Invite</Button>
-    </Modal>
+    <CenteredWrapper>
+      <Modal>
+        <Heading>Accept Invite</Heading>
+        <Label>Invite Token:</Label>
+        <TextArea
+          placeholder="Enter invite token"
+          value={inviteToken}
+          onChange={(e) => setInviteToken(e.target.value)}
+        />
+        {publicKeyBase64 && (
+          <>
+            <Label>Your Public Key:</Label>
+            <ReadOnlyTextArea value={publicKeyBase64} readOnly />
+          </>
+        )}
+        <ButtonRow>
+          <Button onClick={handleAcceptInvite}>Accept Invite</Button>
+        </ButtonRow>
+      </Modal>
+    </CenteredWrapper>
   );
 }
 
-const Modal = styled.div`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: white;
-  padding: 2rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+// Styled Components (reusing similar styles from KeyPairDialog)
+const CenteredWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #f5f5f5;
 `;
 
-const Input = styled.input`
+const Modal = styled.div`
+  padding: 1.5rem;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  width: 400px;
+`;
+
+const Heading = styled.h2`
+  font-size: 1.5rem;
+  color: #000;
+  margin-bottom: 1rem;
+`;
+
+const Label = styled.label`
   display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #333;
+`;
+
+const TextArea = styled.textarea`
   width: 100%;
-  margin: 1rem 0;
+  height: 4rem;
+  margin-bottom: 1rem;
   padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  color: #333;
+  resize: none;
+`;
+
+const ReadOnlyTextArea = styled(TextArea)`
+  background-color: #e9ecef;
+  color: #495057;
+  border: 1px solid #ced4da;
+  pointer-events: none;
+`;
+
+const ButtonRow = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
 `;
 
 const Button = styled.button`
-  margin-right: 1rem;
-`;
+  padding: 0.5rem 1rem;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
 
-const KeyDisplay = styled.div`
-  margin-top: 1rem;
-  font-family: monospace;
+  &:hover {
+    background-color: #0056b3;
+  }
+
+  &:active {
+    background-color: #003f7f;
+  }
 `;

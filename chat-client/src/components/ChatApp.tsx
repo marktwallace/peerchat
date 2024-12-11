@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import KeyPairDialog from "./KeyPairDialog";
-import AcceptInviteDialog from "./AcceptInviteDialog";
+import InviteDialog from "./InviteDialog";
 import { getKeyPair, getInvites, clearDatabase } from "../services/localStorage";
 
 export default function ChatApp() {
@@ -43,7 +43,7 @@ export default function ChatApp() {
 
       {/* Step-based rendering */}
       {step === "keyPair" && <KeyPairDialog onKeyPairReady={() => setStep("invite")} />}
-      {step === "invite" && <AcceptInviteDialog onInviteAccepted={() => setStep("main")} />}
+      {step === "invite" && <InviteDialog onInviteAccepted={() => setStep("main")} />}
       {step === "main" && <div>Welcome to the Chat Application!</div>}
     </div>
   );
